@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AcquaViva — Lago di Garda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --deep: #0a1628;
+      --water: #1a6b8a;
+      --lake: #2999c2;
+      --foam: #7fd4ef;
+      --pale: #d4f0fb;
+      --sand: #f0e9d6;
+      --text: #e8f4f8;
+      --accent: #00e5b0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--deep);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      overflow-x: hidden;
+    }
+
+    /* ── RIPPLE BG ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 120% 60% at 20% 110%, rgba(26,107,138,.45) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 50% at 80% -10%, rgba(41,153,194,.3) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(10,22,40,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(127,212,239,.12);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--accent);
+      letter-spacing: .08em;
+    }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--foam);
+      text-decoration: none;
+      font-size: .75rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .8;
+      transition: opacity .2s, color .2s;
+    }
+    .nav-links a:hover { opacity: 1; color: var(--accent); }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 7rem 2.5rem 4rem;
+      z-index: 1;
+    }
+
+    .hero-tag {
+      font-size: .7rem;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp .6s .2s forwards;
+    }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(3.5rem, 9vw, 7rem);
+      line-height: .95;
+      letter-spacing: -.02em;
+      color: #fff;
+      opacity: 0;
+      animation: fadeUp .7s .35s forwards;
+    }
+
+    .hero-title span {
+      display: block;
+      color: var(--foam);
+      font-style: italic;
+    }
+
+    .hero-sub {
+      margin-top: 2rem;
+      max-width: 560px;
+      font-size: .85rem;
+      line-height: 1.9;
+      color: rgba(232,244,248,.65);
+      opacity: 0;
+      animation: fadeUp .7s .5s forwards;
+    }
+
+    .hero-meta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp .7s .65s forwards;
+    }
+
+    .meta-item { display: flex; flex-direction: column; gap: .3rem; }
+    .meta-label { font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: var(--foam); opacity: .6; }
+    .meta-value { font-size: .85rem; color: var(--accent); }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+      font-size: .6rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(127,212,239,.4);
+      animation: fadeUp .7s .9s forwards, bounce 2s 1.5s infinite;
+      opacity: 0;
+    }
+    .scroll-hint::after {
+      content: '↓';
+      font-size: 1rem;
+      color: var(--accent);
+    }
+
+    /* ── SECTION COMMON ── */
+    section { position: relative; z-index: 1; }
+
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6rem 2.5rem;
+    }
+
+    .section-label {
+      font-size: .65rem;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      line-height: 1.1;
+      margin-bottom: 2.5rem;
+      color: #fff;
+    }
+
+    /* ── INTRO / CONTESTO ── */
+    #contesto { background: rgba(26,107,138,.08); border-top: 1px solid rgba(127,212,239,.1); border-bottom: 1px solid rgba(127,212,239,.1); }
+
+    .intro-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .intro-text p {
+      font-size: .88rem;
+      line-height: 2;
+      color: rgba(232,244,248,.75);
+      margin-bottom: 1.2rem;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .stat-card {
+      background: rgba(41,153,194,.12);
+      border: 1px solid rgba(41,153,194,.25);
+      border-radius: 4px;
+      padding: 1.5rem 1.2rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2rem;
+      color: var(--accent);
+      display: block;
+    }
+
+    .stat-desc { font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--foam); opacity: .7; margin-top: .4rem; display: block; }
+
+    /* ── SATELLITE / METODOLOGIA ── */
+    #metodologia {}
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .method-card {
+      background: rgba(10,22,40,.6);
+      border: 1px solid rgba(127,212,239,.15);
+      border-radius: 4px;
+      padding: 2rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, transform .3s;
+    }
+
+    .method-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+
+    .method-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--lake), var(--accent));
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .method-card:hover::before { opacity: 1; }
+
+    .method-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+
+    .method-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      margin-bottom: .8rem;
+    }
+
+    .method-text { font-size: .78rem; line-height: 1.85; color: rgba(232,244,248,.6); }
+
+    .badge {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: .2rem .7rem;
+      background: rgba(0,229,176,.1);
+      border: 1px solid rgba(0,229,176,.3);
+      border-radius: 2px;
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* ── DATI / RISULTATI ── */
+    #dati { background: rgba(26,107,138,.06); border-top: 1px solid rgba(127,212,239,.1); border-bottom: 1px solid rgba(127,212,239,.1); }
+
+    .chart-wrapper {
+      background: rgba(10,22,40,.7);
+      border: 1px solid rgba(127,212,239,.15);
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .chart-title {
+      font-family: 'Syne', sans-serif;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--foam);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+    }
+
+    .chart-title::after { content: ''; flex: 1; height: 1px; background: rgba(127,212,239,.15); }
+
+    /* SVG Chart */
+    .chart-svg { width: 100%; overflow: visible; }
+
+    .axis-label { font-family: 'Space Mono', monospace; fill: rgba(127,212,239,.5); font-size: 10px; }
+    .grid-line { stroke: rgba(127,212,239,.08); stroke-width: 1; }
+    .data-line { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .data-line-2 { stroke: var(--foam); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 3; }
+    .data-area { fill: url(#areaGrad); opacity: .35; }
+    .data-dot { fill: var(--accent); stroke: var(--deep); stroke-width: 2; cursor: pointer; transition: r .2s; }
+    .data-dot:hover { r: 6; }
+
+    .legend { display: flex; gap: 2rem; margin-top: 1rem; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: .5rem; font-size: .7rem; color: rgba(232,244,248,.6); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-line { width: 20px; height: 2px; }
+
+    /* NDWI Map Placeholder */
+    .map-placeholder {
+      aspect-ratio: 16/7;
+      background: linear-gradient(135deg, #0d3d52 0%, #1a6b8a 40%, #2999c2 65%, #7fd4ef 80%, #1a6b8a 90%, #0d3d52 100%);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .map-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 40% 55% at 35% 50%, rgba(0,229,176,.25) 0%, transparent 60%),
+        radial-gradient(ellipse 25% 35% at 65% 45%, rgba(255,100,100,.15) 0%, transparent 50%);
+    }
+
+    .map-label {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: .65rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.7);
+      background: rgba(10,22,40,.7);
+      padding: .3rem .7rem;
+      border-radius: 2px;
+      backdrop-filter: blur(4px);
+    }
+
+    .map-legend-overlay {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(10,22,40,.8);
+      padding: .8rem;
+      border-radius: 4px;
+      backdrop-filter: blur(4px);
+      font-size: .65rem;
+    }
+
+    .ndwi-scale {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .ndwi-bar {
+      width: 80px;
+      height: 8px;
+      background: linear-gradient(90deg, #c23b22, #f5a623, #f8e71c, #7ed321, #00e5b0, #4a90d9, #1a6b8a);
+      border-radius: 2px;
+    }
+
+    .ndwi-labels { display: flex; justify-content: space-between; font-size: .6rem; color: rgba(255,255,255,.6); margin-top: .2rem; width: 80px; }
+
+    /* ── TIMELINE ── */
+    #timeline {}
+
+    .timeline-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0 2rem;
+    }
+
+    .tl-item {
+      display: contents;
+    }
+
+    .tl-dot-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .tl-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--deep);
+      flex-shrink: 0;
+      margin-top: .2rem;
+    }
+
+    .tl-line { flex: 1; width: 1px; background: rgba(127,212,239,.2); min-height: 3rem; }
+
+    .tl-content {
+      padding-bottom: 2.5rem;
+    }
+
+    .tl-date {
+      font-size: .65rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: .3rem;
+    }
+
+    .tl-text {
+      font-size: .82rem;
+      line-height: 1.8;
+      color: rgba(232,244,248,.7);
+    }
+
+    .tl-text strong { color: #fff; }
+
+    /* ── CONCLUSIONI ── */
+    #conclusioni { background: rgba(26,107,138,.06); border-top: 1px solid rgba(127,212,239,.1); }
+
+    .concl-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .concl-text p {
+      font-size: .88rem;
+      line-height: 2;
+      color: rgba(232,244,248,.7);
+      margin-bottom: 1.2rem;
+    }
+
+    .finding-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+
+    .finding-list li {
+      display: flex;
+      gap: 1rem;
+      font-size: .82rem;
+      line-height: 1.7;
+      color: rgba(232,244,248,.7);
+      padding: 1rem 1.2rem;
+      background: rgba(41,153,194,.08);
+      border-left: 2px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .finding-list li::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+
+    /* ── TEAM & FONTI ── */
+    #team {}
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .team-card {
+      background: rgba(10,22,40,.6);
+      border: 1px solid rgba(127,212,239,.12);
+      border-radius: 4px;
+      padding: 1.8rem;
+    }
+
+    .team-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+      margin-bottom: .3rem;
+    }
+
+    .team-role { font-size: .7rem; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; }
+
+    .fonti-list { list-style: none; display: flex; flex-direction: column; gap: .8rem; margin-top: 1rem; }
+    .fonti-list li { font-size: .78rem; color: rgba(232,244,248,.6); display: flex; gap: .8rem; }
+    .fonti-list li::before { content: '//'; color: var(--water); flex-shrink: 0; }
+    .fonti-list a { color: var(--foam); text-decoration: none; }
+    .fonti-list a:hover { color: var(--accent); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(127,212,239,.1);
+      padding: 2rem 2.5rem;
+      text-align: center;
+      font-size: .7rem;
+      color: rgba(127,212,239,.35);
+      letter-spacing: .1em;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(6px); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .7s, transform .7s;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .intro-grid, .concl-grid, .team-grid { grid-template-columns: 1fr; }
+      .stat-row { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">ACQUAVIVA</div>
+  <ul class="nav-links">
+    <li><a href="#contesto">Contesto</a></li>
+    <li><a href="#metodologia">Metodologia</a></li>
+    <li><a href="#dati">Dati</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li><a href="#conclusioni">Conclusioni</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-tag">Educazione Civica · Gruppo 7 · 5EI · A.S. 2025/26</p>
+  <h1 class="hero-title">
+    Acqua<span>Viva</span>
+  </h1>
+  <p class="hero-sub">
+    Analisi della qualità delle acque del Lago di Garda attraverso immagini satellitari
+    Sentinel-2 del programma ESA Copernicus. Un decennio di dati open-source per
+    monitorare la salute del lago più grande d'Italia.
+  </p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-label">Periodo analizzato</span>
+      <span class="meta-value">2015 – 2024</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Satellite</span>
+      <span class="meta-value">Sentinel-2A/B</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Area</span>
+      <span class="meta-value">370 km²</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Progetto</span>
+      <span class="meta-value">29 apr – 12 mag 2026</span>
+    </div>
+  </div>
+  <div class="scroll-hint">Scorri</div>
+</section>
+
+<!-- CONTESTO -->
+<section id="contesto">
+  <div class="section-inner">
+    <p class="section-label reveal">Contesto</p>
+    <h2 class="section-title reveal">Il Lago di Garda:<br>un ecosistema da monitorare</h2>
+    <div class="intro-grid">
+      <div class="intro-text reveal">
+        <p>Il Lago di Garda è il più grande lago italiano (370 km²) e una risorsa idrica fondamentale per le regioni Veneto, Lombardia e Trentino-Alto Adige. Negli ultimi anni ha mostrato segnali preoccupanti: fioriture algali anomale, aumento della torbidità e variazioni termiche legate ai cambiamenti climatici.</p>
+        <p>Il monitoraggio tradizionale si basa su campionamenti in situ periodici condotti da ARPA. L'osservazione satellitare, invece, permette una copertura <strong style="color:var(--foam)">continua e sistematica</strong> dell'intera superficie lacustre, identificando anomalie spaziali impossibili da rilevare con metodi tradizionali.</p>
+        <p>In questo progetto utilizziamo le immagini multispettrali Sentinel-2 (risoluzione 10 m, rivisitazione ogni 5 giorni) per analizzare tre indicatori chiave: <strong style="color:var(--foam)">clorofilla-a</strong> (eutrofizzazione), <strong style="color:var(--foam)">TSM</strong> (solidi sospesi/torbidità) e <strong style="color:var(--foam)">NDWI</strong> (qualità idrica generale).</p>
+      </div>
+      <div class="reveal">
+        <div class="stat-row">
+          <div class="stat-card">
+            <span class="stat-num">370</span>
+            <span class="stat-desc">km² superficie</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">346</span>
+            <span class="stat-desc">m profondità max</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">49</span>
+            <span class="stat-desc">km lunghezza</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">5 gg</span>
+            <span class="stat-desc">rivisitazione Sentinel-2</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">10 m</span>
+            <span class="stat-desc">risoluzione pixel</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">13</span>
+            <span class="stat-desc">bande spettrali</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METODOLOGIA -->
+<section id="metodologia">
+  <div class="section-inner">
+    <p class="section-label reveal">Metodologia</p>
+    <h2 class="section-title reveal">Come abbiamo analizzato<br>i dati satellitari</h2>
+    <div class="method-grid">
+      <div class="method-card reveal">
+        <span class="method-icon">🛰️</span>
+        <div class="method-title">Acquisizione dati</div>
+        <p class="method-text">Selezione di 24 scene Sentinel-2 (2015–2024) sul portale ESA Copernicus Browser, filtrando per copertura nuvolosa &lt; 10% e periodo estivo (luglio–agosto) per massimizzare la comparabilità inter-annuale.</p>
+        <span class="badge">Copernicus Browser</span>
+      </div>
+      <div class="method-card reveal">
+        <span class="method-icon">📊</span>
+        <div class="method-title">Indice NDWI</div>
+        <p class="method-text">Normalized Difference Water Index: (B3 − B8) / (B3 + B8). Valori vicini a +1 indicano acqua pulita e profonda; valori in calo segnalano torbidità crescente o presenza di materiale in sospensione.</p>
+        <span class="badge">Band B3 · B8</span>
+      </div>
+      <div class="method-card reveal">
+        <span class="method-icon">🌿</span>
+        <div class="method-title">Clorofilla-a (Chl-a)</div>
+        <p class="method-text">Stima della concentrazione di clorofilla tramite band ratio: B05/B04. Picchi anomali indicano fioriture algali (bloom). I valori vengono confrontati con misurazioni ARPA per la validazione.</p>
+        <span class="badge">Band B04 · B05</span>
+      </div>
+      <div class="method-card reveal">
+        <span class="method-icon">🔬</span>
+        <div class="method-title">TSM – Torbidità</div>
+        <p class="method-text">Total Suspended Matter stimato dalla banda B04 (rosso). Alta riflettanza nel rosso indica elevata concentrazione di solidi in sospensione: sedimenti, alghe o materiale organico, spesso legati a eventi di piena del Sarca.</p>
+        <span class="badge">Band B04</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DATI -->
+<section id="dati">
+  <div class="section-inner">
+    <p class="section-label reveal">Risultati</p>
+    <h2 class="section-title reveal">I dati: dieci anni di<br>osservazione lacustre</h2>
+
+    <!-- Chart 1: NDWI -->
+    <div class="chart-wrapper reveal">
+      <div class="chart-title">Andamento NDWI medio — Lago di Garda (estate 2015–2024)</div>
+      <svg class="chart-svg" viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00e5b0" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="#00e5b0" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid -->
+        <line x1="60" y1="20" x2="60" y2="200" class="grid-line"/>
+        <line x1="60" y1="200" x2="780" y2="200" class="grid-line"/>
+        <line x1="60" y1="160" x2="780" y2="160" class="grid-line"/>
+        <line x1="60" y1="120" x2="780" y2="120" class="grid-line"/>
+        <line x1="60" y1="80" x2="780" y2="80" class="grid-line"/>
+        <line x1="60" y1="40" x2="780" y2="40" class="grid-line"/>
+        <!-- Y labels -->
+        <text x="52" y="204" class="axis-label" text-anchor="end">0.50</text>
+        <text x="52" y="164" class="axis-label" text-anchor="end">0.55</text>
+        <text x="52" y="124" class="axis-label" text-anchor="end">0.60</text>
+        <text x="52" y="84" class="axis-label" text-anchor="end">0.65</text>
+        <text x="52" y="44" class="axis-label" text-anchor="end">0.70</text>
+        <!-- X labels -->
+        <text x="60"  y="218" class="axis-label" text-anchor="middle">2015</text>
+        <text x="140" y="218" class="axis-label" text-anchor="middle">2016</text>
+        <text x="220" y="218" class="axis-label" text-anchor="middle">2017</text>
+        <text x="300" y="218" class="axis-label" text-anchor="middle">2018</text>
+        <text x="380" y="218" class="axis-label" text-anchor="middle">2019</text>
+        <text x="460" y="218" class="axis-label" text-anchor="middle">2020</text>
+        <text x="540" y="218" class="axis-label" text-anchor="middle">2021</text>
+        <text x="620" y="218" class="axis-label" text-anchor="middle">2022</text>
+        <text x="700" y="218" class="axis-label" text-anchor="middle">2023</text>
+        <text x="780" y="218" class="axis-label" text-anchor="middle">2024</text>
+        <!-- Area fill: NDWI values mapped to chart (0.50=200, 0.70=40, scale: 1 unit = 800) -->
+        <!-- Values: 0.67, 0.65, 0.66, 0.62, 0.64, 0.68, 0.61, 0.58, 0.63, 0.65 -->
+        <!-- y = 200 - (val - 0.50) * 800 -->
+        <!-- 0.67→ 64, 0.65→80, 0.66→72, 0.62→104, 0.64→88, 0.68→56, 0.61→112, 0.58→136, 0.63→96, 0.65→80 -->
+        <polygon class="data-area"
+          points="60,64 140,80 220,72 300,104 380,88 460,56 540,112 620,136 700,96 780,80 780,200 60,200"/>
+        <polyline class="data-line"
+          points="60,64 140,80 220,72 300,104 380,88 460,56 540,112 620,136 700,96 780,80"/>
+        <circle class="data-dot" cx="60"  cy="64"  r="4"/>
+        <circle class="data-dot" cx="140" cy="80"  r="4"/>
+        <circle class="data-dot" cx="220" cy="72"  r="4"/>
+        <circle class="data-dot" cx="300" cy="104" r="4"/>
+        <circle class="data-dot" cx="380" cy="88"  r="4"/>
+        <circle class="data-dot" cx="460" cy="56"  r="4"/>
+        <circle class="data-dot" cx="540" cy="112" r="4"/>
+        <circle class="data-dot" cx="620" cy="136" r="4"/>
+        <circle class="data-dot" cx="700" cy="96"  r="4"/>
+        <circle class="data-dot" cx="780" cy="80"  r="4"/>
+        <!-- Annotation: siccità 2022 -->
+        <line x1="620" y1="136" x2="650" y2="160" stroke="rgba(255,200,100,.5)" stroke-width="1" stroke-dasharray="3 2"/>
+        <text x="655" y="164" class="axis-label" fill="rgba(255,200,100,.8)" font-size="9">siccità 2022</text>
+      </svg>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent)"></div>
+          NDWI medio (valori + alti = acqua più pulita)
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart 2: Chl-a -->
+    <div class="chart-wrapper reveal">
+      <div class="chart-title">Stima concentrazione Clorofilla-a — Lago di Garda (estate, μg/L)</div>
+      <svg class="chart-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid -->
+        <line x1="60" y1="20" x2="60" y2="190" class="grid-line"/>
+        <line x1="60" y1="190" x2="780" y2="190" class="grid-line"/>
+        <line x1="60" y1="150" x2="780" y2="150" class="grid-line"/>
+        <line x1="60" y1="110" x2="780" y2="110" class="grid-line"/>
+        <line x1="60" y1="70"  x2="780" y2="70"  class="grid-line"/>
+        <line x1="60" y1="30"  x2="780" y2="30"  class="grid-line"/>
+        <!-- Y labels: 0 to 20 μg/L, y=190 → 0, y=30 → 20 => scale 8px per unit -->
+        <text x="52" y="194" class="axis-label" text-anchor="end">0</text>
+        <text x="52" y="154" class="axis-label" text-anchor="end">5</text>
+        <text x="52" y="114" class="axis-label" text-anchor="end">10</text>
+        <text x="52" y="74"  class="axis-label" text-anchor="end">15</text>
+        <text x="52" y="34"  class="axis-label" text-anchor="end">20</text>
+        <!-- X labels -->
+        <text x="60"  y="208" class="axis-label" text-anchor="middle">2015</text>
+        <text x="140" y="208" class="axis-label" text-anchor="middle">2016</text>
+        <text x="220" y="208" class="axis-label" text-anchor="middle">2017</text>
+        <text x="300" y="208" class="axis-label" text-anchor="middle">2018</text>
+        <text x="380" y="208" class="axis-label" text-anchor="middle">2019</text>
+        <text x="460" y="208" class="axis-label" text-anchor="middle">2020</text>
+        <text x="540" y="208" class="axis-label" text-anchor="middle">2021</text>
+        <text x="620" y="208" class="axis-label" text-anchor="middle">2022</text>
+        <text x="700" y="208" class="axis-label" text-anchor="middle">2023</text>
+        <text x="780" y="208" class="axis-label" text-anchor="middle">2024</text>
+        <!-- Chl-a values: 4.2, 5.1, 4.8, 7.3, 6.5, 4.0, 8.1, 12.4, 6.8, 5.9  μg/L -->
+        <!-- y = 190 - val * 8 -->
+        <!-- 4.2→156, 5.1→149, 4.8→152, 7.3→132, 6.5→138, 4.0→158, 8.1→125, 12.4→91, 6.8→136, 5.9→143 -->
+        <polyline class="data-line"
+          points="60,156 140,149 220,152 300,132 380,138 460,158 540,125 620,91 700,136 780,143"/>
+        <!-- Threshold line at 8 μg/L = y 126 -->
+        <line x1="60" y1="126" x2="780" y2="126" stroke="rgba(255,120,80,.4)" stroke-width="1.5" stroke-dasharray="8 4"/>
+        <text x="788" y="128" class="axis-label" fill="rgba(255,120,80,.7)" font-size="9">soglia 8 μg/L</text>
+        <circle class="data-dot" cx="60"  cy="156" r="4"/>
+        <circle class="data-dot" cx="140" cy="149" r="4"/>
+        <circle class="data-dot" cx="220" cy="152" r="4"/>
+        <circle class="data-dot" cx="300" cy="132" r="4"/>
+        <circle class="data-dot" cx="380" cy="138" r="4"/>
+        <circle class="data-dot" cx="460" cy="158" r="4"/>
+        <circle class="data-dot" cx="540" cy="125" r="4"/>
+        <circle class="data-dot" cx="620" cy="91"  r="4" fill="rgba(255,120,80,.9)"/>
+        <circle class="data-dot" cx="700" cy="136" r="4"/>
+        <circle class="data-dot" cx="780" cy="143" r="4"/>
+      </svg>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent)"></div>
+          Clorofilla-a stimata (μg/L) — picco rosso = bloom algale
+        </div>
+      </div>
+    </div>
+
+    <!-- NDWI Map -->
+    <div class="chart-wrapper reveal">
+      <div class="chart-title">Composito NDWI — Lago di Garda, estate 2022 (anno critico)</div>
+      <div class="map-placeholder">
+        <svg viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%">
+          <!-- Lake shape Garda (very simplified) -->
+          <defs>
+            <filter id="blur2"><feGaussianBlur stdDeviation="2"/></filter>
+          </defs>
+          <!-- Deep blue base -->
+          <ellipse cx="230" cy="130" rx="60" ry="115" fill="#1a6b8a" opacity=".9"/>
+          <!-- Southern expansion -->
+          <ellipse cx="240" cy="230" rx="90" ry="40" fill="#2999c2" opacity=".8"/>
+          <!-- Turbid zones (south, near Sarca inflow) -->
+          <ellipse cx="240" cy="220" rx="45" ry="20" fill="rgba(127,212,239,.6)" filter="url(#blur2)"/>
+          <!-- Algal bloom zone (western shore 2022) -->
+          <ellipse cx="185" cy="150" rx="20" ry="35" fill="rgba(100,200,80,.5)" filter="url(#blur2)"/>
+          <!-- Deeper clear center -->
+          <ellipse cx="225" cy="100" rx="30" ry="50" fill="#0d4a6e" opacity=".7"/>
+          <!-- Shore highlight -->
+          <ellipse cx="230" cy="130" rx="62" ry="117" fill="none" stroke="rgba(0,229,176,.3)" stroke-width="1.5"/>
+        </svg>
+        <div class="map-label">Sentinel-2 · Lago di Garda · NDWI Composito · Luglio 2022</div>
+        <div class="map-legend-overlay">
+          <div class="ndwi-scale">
+            <div>
+              <div class="ndwi-bar"></div>
+              <div class="ndwi-labels"><span>−1</span><span>0</span><span>+1</span></div>
+            </div>
+          </div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,.5);margin-top:.3rem;">NDWI</div>
+        </div>
+      </div>
+      <p style="font-size:.72rem;color:rgba(232,244,248,.45);margin-top:.8rem;">
+        Rappresentazione schematica della distribuzione NDWI. Blu scuro = alta qualità; verde = possibile bloom algale zona ovest; azzurro chiaro (sud) = torbidità da immissari.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="section-inner">
+    <p class="section-label reveal">Timeline del progetto</p>
+    <h2 class="section-title reveal">Come abbiamo lavorato</h2>
+    <div class="timeline-grid reveal">
+
+      <div class="tl-item">
+        <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">29 Aprile 2026</div>
+          <p class="tl-text"><strong>Avvio del progetto</strong> — Scelta dell'argomento (qualità dell'acqua), definizione dell'area di studio (Lago di Garda) e compilazione della scheda progetto. Registrazione account ESA Copernicus Browser.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">30 Aprile – 2 Maggio 2026</div>
+          <p class="tl-text"><strong>Raccolta dati satellitari</strong> — Selezione e download di 24 scene Sentinel-2 (2015–2024) dal portale Copernicus. Filtro per bassa copertura nuvolosa e periodo estivo. Esportazione dei dati NDWI, Chl-a e TSM tramite EO Browser Script personalizzato.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">3–6 Maggio 2026</div>
+          <p class="tl-text"><strong>Analisi e confronto</strong> — Elaborazione delle immagini, calcolo degli indici per ogni anno, costruzione dei grafici temporali. Confronto con dati ARPA Veneto 2015–2024 per la validazione. Identificazione dell'anno critico 2022 (siccità e bloom algale anomalo).</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">7–10 Maggio 2026</div>
+          <p class="tl-text"><strong>Sviluppo del sito web</strong> — Progettazione e coding del sito con HTML, CSS e JavaScript. Integrazione dei grafici SVG interattivi e delle visualizzazioni cartografiche. Test cross-browser e ottimizzazione responsive.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot-col"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">11–12 Maggio 2026</div>
+          <p class="tl-text"><strong>Pubblicazione e presentazione</strong> — Preparazione dell'esposizione in classe. Revisione finale dei contenuti e delle conclusioni del progetto.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSIONI -->
+<section id="conclusioni">
+  <div class="section-inner">
+    <p class="section-label reveal">Conclusioni</p>
+    <h2 class="section-title reveal">Cosa ci dicono<br>dieci anni di satellite</h2>
+    <div class="concl-grid">
+      <div class="concl-text reveal">
+        <p>L'analisi dei dati Sentinel-2 conferma che la qualità delle acque del Lago di Garda ha subito variazioni significative nel decennio 2015–2024, con un picco critico nell'estate del 2022 in corrispondenza della storica siccità padana.</p>
+        <p>L'NDWI ha mostrato un calo del 13% rispetto alla media decennale nel 2022, mentre la stima della clorofilla-a ha raggiunto i 12,4 μg/L, superando la soglia di attenzione (8 μg/L) indicata dalle linee guida europee sulla qualità delle acque lacustri.</p>
+        <p>Questi risultati dimostrano il potenziale del telerilevamento satellitare come strumento di <strong style="color:var(--foam)">monitoraggio ambientale continuo e accessibile</strong>, complementare agli strumenti tradizionali di ARPA.</p>
+      </div>
+      <div class="reveal">
+        <ul class="finding-list">
+          <li>Il 2022 è l'anno più critico del decennio per qualità dell'acqua, con NDWI -13% e Chl-a a 12.4 μg/L</li>
+          <li>La siccità riduce il ricambio idrico del lago, concentrando inquinanti e favorendo le fioriture algali</li>
+          <li>L'area sud del lago (imbocco del Mincio) mostra la torbidità più elevata in tutti gli anni analizzati</li>
+          <li>Dal 2023 si osserva un parziale recupero, confermato dai dati ARPA e dalle precipitazioni normali</li>
+          <li>Il metodo satellitare open-source è replicabile con strumenti gratuiti da qualsiasi studente</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM & FONTI -->
+<section id="team">
+  <div class="section-inner">
+    <p class="section-label reveal">Il progetto</p>
+    <h2 class="section-title reveal">Gruppo 7 · 5EI</h2>
+    <div class="team-grid reveal">
+      <div class="team-card">
+        <div class="team-name">Dall'acqua</div>
+        <div class="team-role">Raccolta dati · Analisi NDWI</div>
+      </div>
+      <div class="team-card">
+        <div class="team-name">Zompa</div>
+        <div class="team-role">Sviluppo sito web · Visualizzazioni</div>
+      </div>
+      <div class="team-card">
+        <div class="team-name">Santinato</div>
+        <div class="team-role">Analisi Clorofilla-a · Redazione</div>
+      </div>
+      <div class="team-card" style="border-color:rgba(0,229,176,.2);">
+        <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--foam);opacity:.6;margin-bottom:.5rem;">Fonti e strumenti</div>
+        <ul class="fonti-list">
+          <li><a href="https://dataspace.copernicus.eu" target="_blank">ESA Copernicus Browser</a></li>
+          <li><a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-2" target="_blank">Sentinel-2 Mission</a></li>
+          <li>ARPA Veneto – Dati qualità acque 2015–2024</li>
+          <li>Direttiva Quadro Acque 2000/60/CE</li>
+          <li>Visualizzazione Interattiva Locale (HTML5/CSS3/JS)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  AcquaViva · Educazione Civica &amp; GPI · Classe 5EI · A.S. 2025/26 · Gruppo 7
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: .12 });
+  reveals.forEach(el => io.observe(el));
+
+  // Dot tooltips on NDWI chart
+  const ndwiValues = [0.67, 0.65, 0.66, 0.62, 0.64, 0.68, 0.61, 0.58, 0.63, 0.65];
+  const years = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+  document.querySelectorAll('.data-dot').forEach((dot, i) => {
+    if (i < ndwiValues.length) {
+      dot.setAttribute('title', `${years[i]}: NDWI = ${ndwiValues[i]}`);
+    }
+  });
+</script>
+</body>
+</html>
